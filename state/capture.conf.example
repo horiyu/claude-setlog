@@ -1,0 +1,29 @@
+# claude-setlog settings. Copied to state/capture.conf on first run: edit that copy.
+
+# SOURCE=feed    -> draw the Claude Code session from its transcript (default).
+# SOURCE=window  -> film a real X11 window instead (bin/pick-window.sh to choose).
+SOURCE=feed
+
+# setlog only captures in landscape ("rotate to capture"). Keep this unless you are
+# not capturing through setlog.
+ORIENT=landscape
+
+SCENE=desktop           # desktop = windows + terminal + mouse; terminal = terminal only
+SETLOG_PROJECT=*        # glob under ~/.claude/projects; * = most recently active
+
+# X display for the emulator window and the clipboard. Empty = $DISPLAY, else :0.
+DISPLAY_ID=
+
+# Taps on the setlog screens, for a 1080x2400 AVD. Uncomment to change.
+#TAP_RECORD="540 1836"  # the shutter button
+#TAP_ROOM="120 1106"    # the room's row on the send screen (the 2nd row)
+#TAP_SEND="984 206"     # the send arrow
+
+# resident mode only (bin/start.sh)
+MOOD_INTERVAL=300       # seconds between one-liner refreshes
+
+# window mode only
+WINDOW_ID=
+CLIP_SECONDS=10
+FPS=24
+CAPTION=1

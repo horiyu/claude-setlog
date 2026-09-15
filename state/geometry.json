@@ -1,0 +1,10 @@
+{
+  "_measured_2026_09_05": "The emulator's videofile camera treats the source as a 4:3 sensor: it takes a region of full source width and height 0.75*width, vertically centred. The app then crops that LEFT-ANCHORED to whatever aspect it asked for. Stills (3:4) keep the left 0.561*src_w; video (9:16) keeps only the left 0.421*src_w.",
+  "_therefore": "source frame is 1710x1280 (4:3) and everything that must survive lives in the left 720x1280.",
+  "src_w": 1710,
+  "src_h": 1280,
+  "safe_w": 720,
+  "safe_h": 1280,
+  "visible_fraction_stills": 0.561,
+  "visible_fraction_video": 0.421
+}

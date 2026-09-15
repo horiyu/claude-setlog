@@ -1,0 +1,14 @@
+# Large or machine-specific: set these up yourself (see README)
+/jdk/
+/sdk/
+/avd/
+/vendor/
+__pycache__/
+
+# Runtime state: videos, captions, screenshots, transcripts received from other machines
+/state/*
+!/state/capture.conf.example
+!/state/geometry.json
+
+# Private correspondence with New Chat (the permission request and its reply)
+/docs/permission-*

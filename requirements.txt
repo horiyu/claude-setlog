@@ -1,0 +1,4 @@
+Pillow>=10
+pygments>=2.15
+fonttools>=4
+python-xlib>=0.33
