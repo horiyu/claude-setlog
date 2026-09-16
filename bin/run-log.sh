@@ -45,3 +45,4 @@ if [ $started = 1 ]; then
   log "emulator stopped"
 fi
 log "done rc=$rc"
+exit "$rc"
