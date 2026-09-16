@@ -35,8 +35,13 @@ fi
 #    run: on-prompt.sh keeps recording triggers while the emulator boots.
 [ -s state/latest-transcript ] && export SETLOG_TRANSCRIPT="$(cat state/latest-transcript)"
 
-# 1. Caption. Written now, so it reacts to what is on screen at this moment.
-SETLOG_PROJECT="$SETLOG_PROJECT" "$SETLOG_PYTHON" bin/mood.py >/dev/null 2>>/tmp/setlog-mood.err || true
+# 1. Caption. Written now, so it reacts to what is on screen at this moment. The
+#    previous caption is removed first: if claude -p fails (timeout, expired login,
+#    no network) this Log must not go out with last time's words on it.
+rm -f state/mood.txt
+if ! SETLOG_PROJECT="$SETLOG_PROJECT" "$SETLOG_PYTHON" bin/mood.py >/dev/null 2>>/tmp/setlog-mood.err; then
+  echo "caption failed (see /tmp/setlog-mood.err)" >&2; exit 1
+fi
 mood=$(head -1 state/mood.txt)
 [ -n "$mood" ] || { echo "no caption" >&2; exit 1; }
 
