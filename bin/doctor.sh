@@ -15,7 +15,7 @@ check() {   # check "label" command...
     echo "  NG  $label"; ng=$((ng + 1))
   fi
 }
-py() { python3 -c "import sys; sys.path[:0] = ['bin', 'vendor']; $1"; }
+py() { "$SETLOG_PYTHON" -c "import sys; sys.path[:0] = ['bin', 'vendor']; $1"; }
 
 echo "Android"
 check "KVM (/dev/kvm)"            test -w /dev/kvm
@@ -24,7 +24,7 @@ check "emulator"                  command -v emulator
 check "adb"                       command -v adb
 check "an AVD named setlog"       sh -c 'emulator -list-avds | grep -qx setlog'
 echo "Desktop"
-check "X display $display"        env DISPLAY="$display" python3 -c \
+check "X display $display"        env DISPLAY="$display" "$SETLOG_PYTHON" -c \
       "import sys; sys.path.insert(0, 'vendor'); from Xlib import display; display.Display()"
 check "ffmpeg"                    command -v ffmpeg
 echo "Python"

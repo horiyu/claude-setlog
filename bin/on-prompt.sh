@@ -13,7 +13,7 @@ kind="${CLAUDE_CODE_ENVIRONMENT_KIND:-}/${CLAUDE_CODE_ENTRYPOINT:-}"
 decision=run
 [ -n "${SETLOG_INNER:-}" ] && decision=skip
 
-transcript=$(printf '%s' "$input" | python3 -c \
+transcript=$(printf '%s' "$input" | "${SETLOG_PYTHON:-python3}" -c \
   'import sys,json; print(json.load(sys.stdin).get("transcript_path",""))' 2>/dev/null)
 echo "$(date '+%F %T') $decision kind=$kind $transcript" >> "$SETLOG_HOME/state/triggers.log"
 

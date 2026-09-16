@@ -103,7 +103,7 @@ clone すればそのまま動く、というものではない。次の前提�
 - Linux の X11 デスクトップ（エミュレータのウィンドウとクリップボード共有を使う）と KVM
 - Android SDK: `emulator`、`platform-tools`、`cmdline-tools`、Google Play 入りのシステムイメージ
   （動作確認は `system-images;android-35;google_apis_playstore;x86_64`）、JDK 17 以上
-- Python 3.10 以上と `pip install -r requirements.txt`、`ffmpeg`
+- Python 3.10 以上（Pillow / Pygments / fontTools / python-xlib）と `ffmpeg`
 - フォント: Noto Sans CJK（`fonts-noto-cjk`）、DejaVu（`fonts-dejavu`）。JetBrains Mono があれば使う
 - [Claude Code](https://claude.com/claude-code)（`claude` コマンド。一言の生成にも使う）
 - setlog のアカウントと、投稿先のルーム
@@ -115,7 +115,19 @@ clone すればそのまま動く、というものではない。次の前提�
 
    ```sh
    git clone https://github.com/horiyu/claude-setlog && cd claude-setlog
-   pip install -r requirements.txt
+   ```
+
+   Python の依存は、どちらかで入れる。スクリプトは `python3` を直に呼ぶので、**仮想環境に
+   入れたときは `SETLOG_PYTHON` でその Python を指す**こと（`env.sh` が読む）。
+
+   ```sh
+   # 1) OS のパッケージで入れる（最近の Ubuntu / Debian は pip を直接使えない）
+   sudo apt install python3-pil python3-pygments python3-fonttools python3-xlib ffmpeg
+
+   # 2) 仮想環境に入れる
+   sudo apt install python3-venv            # 無ければ
+   python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+   export SETLOG_PYTHON="$PWD/.venv/bin/python"   # ~/.profile などに書いておく
    ```
 
    設定は `state/capture.conf`（初回に `state/capture.conf.example` からコピーされる）。
@@ -170,7 +182,8 @@ clone すればそのまま動く、というものではない。次の前提�
 | `DISPLAY_ID` | 空（`$DISPLAY`、無ければ `:0`） | エミュレータとクリップボードに使う X のディスプレイ。フックは画面の無いセッションからも呼ばれるので、決まっているなら書いておく |
 | `TAP_RECORD` / `TAP_ROOM` / `TAP_SEND` | 1080x2400 用 | 撮影ボタン・ルームの行・送信ボタンのタップ位置 |
 
-環境変数: `SETLOG_USER`（アプリ画面に出す名前。既定はログインユーザー名）、
+環境変数: `SETLOG_PYTHON`（描画と一言に使う Python。仮想環境に入れたときに指す）、
+`SETLOG_USER`（アプリ画面に出す名前。既定はログインユーザー名）、
 `SETLOG_MONO_FONT`（等幅フォント）、`SETLOG_MOOD_MODEL`（一言を書くモデル）。
 
 ## 記録と確認

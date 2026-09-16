@@ -6,7 +6,7 @@ cd "$(dirname "$0")/.."
 echo $$ > state/mood.pid
 trap 'rm -f state/mood.pid; exit 0' TERM INT
 while :; do
-  if SETLOG_PROJECT="$SETLOG_PROJECT" python3 bin/mood.py >/dev/null 2>>/tmp/setlog-mood.err; then
+  if SETLOG_PROJECT="$SETLOG_PROJECT" "${SETLOG_PYTHON:-python3}" bin/mood.py >/dev/null 2>>/tmp/setlog-mood.err; then
     bin/clip-set.sh     # keep the clipboard holding the latest line, ready to paste
   fi
   sleep "${MOOD_INTERVAL:-300}"

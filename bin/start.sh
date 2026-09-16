@@ -8,8 +8,8 @@ export DISPLAY="${DISPLAY_ID:-${DISPLAY:-:0}}"
 
 if [ "${SOURCE:-feed}" = "feed" ]; then
   export SETLOG_ORIENT="$ORIENT" SETLOG_PROJECT="$SETLOG_PROJECT" SETLOG_SCENE="${SCENE:-desktop}"
-  [ -s state/card.mp4 ] || python3 bin/feed.py --once
-  nohup python3 bin/feed.py > /tmp/setlog-feed.log 2>&1 &
+  [ -s state/card.mp4 ] || "$SETLOG_PYTHON" bin/feed.py --once
+  nohup "$SETLOG_PYTHON" bin/feed.py > /tmp/setlog-feed.log 2>&1 &
   echo $! > state/feed.pid
   nohup bin/mood-loop.sh > /tmp/setlog-mood.log 2>&1 &
   echo "feed started ($ORIENT, project glob: $SETLOG_PROJECT)"

@@ -8,3 +8,7 @@ export PATH=$JAVA_HOME/bin:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_S
 # A fresh clone starts from the sample settings; state/capture.conf is yours to edit.
 [ -f "$SETLOG_HOME/state/capture.conf" ] ||
   cp "$SETLOG_HOME/state/capture.conf.example" "$SETLOG_HOME/state/capture.conf"
+
+# Which Python runs the drawing and the caption. Point this at a virtualenv if the
+# dependencies live there, e.g. SETLOG_PYTHON=/path/to/venv/bin/python in your profile.
+export SETLOG_PYTHON="${SETLOG_PYTHON:-python3}"

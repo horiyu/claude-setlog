@@ -20,7 +20,7 @@ TAP_RECORD=${TAP_RECORD:-"540 1836"}   # the shutter button
 TAP_ROOM=${TAP_ROOM:-"120 ${ROOM_Y:-1106}"}  # checkbox of the room row on the send screen
 TAP_SEND=${TAP_SEND:-"984 206"}        # the send arrow
 
-recent=$(python3 -c 'import sys,json,time
+recent=$("$SETLOG_PYTHON" -c 'import sys,json,time
 n=0
 for l in open(sys.argv[1]):
     try: n += time.time() - json.loads(l)["epoch"] < 3600
@@ -36,20 +36,20 @@ fi
 [ -s state/latest-transcript ] && export SETLOG_TRANSCRIPT="$(cat state/latest-transcript)"
 
 # 1. Caption. Written now, so it reacts to what is on screen at this moment.
-SETLOG_PROJECT="$SETLOG_PROJECT" python3 bin/mood.py >/dev/null 2>>/tmp/setlog-mood.err || true
+SETLOG_PROJECT="$SETLOG_PROJECT" "$SETLOG_PYTHON" bin/mood.py >/dev/null 2>>/tmp/setlog-mood.err || true
 mood=$(head -1 state/mood.txt)
 [ -n "$mood" ] || { echo "no caption" >&2; exit 1; }
 
 # 2. Japanese can't go through `input text`, so hand it over via the clipboard the
 #    emulator shares with X. clip.py exits once Android has taken the selection.
 [ -f state/clip.pid ] && kill "$(cat state/clip.pid)" 2>/dev/null || true
-setsid nohup python3 bin/clip.py "$mood" > /tmp/setlog-clip.log 2>&1 < /dev/null 9>&- &
+setsid nohup "$SETLOG_PYTHON" bin/clip.py "$mood" > /tmp/setlog-clip.log 2>&1 < /dev/null 9>&- &
 echo $! > state/clip.pid
 sleep 3
 
 # 3. Draw the screen once, now. There is no resident feed any more.
 SETLOG_ORIENT="$ORIENT" SETLOG_PROJECT="$SETLOG_PROJECT" SETLOG_SCENE="${SCENE:-desktop}" \
-  python3 bin/feed.py --once
+  "$SETLOG_PYTHON" bin/feed.py --once
 
 # Fresh camera session, so the emulator picks up that card.mp4.
 adb emu sensor set acceleration 0:9.81:0.8 >/dev/null
@@ -106,7 +106,7 @@ kill "$(cat state/clip.pid)" 2>/dev/null || true   # set -e: it may already be g
 rm -f state/clip.pid
 adb emu sensor set acceleration 0:9.81:0.8 >/dev/null
 
-python3 -c 'import json,sys,time,datetime
+"$SETLOG_PYTHON" -c 'import json,sys,time,datetime
 print(json.dumps({"time":datetime.datetime.now().isoformat(timespec="seconds"),
                   "epoch":int(time.time()),"caption":sys.argv[1],
                   "uploaded_bytes":int(sys.argv[2])},ensure_ascii=False))' "$mood" "$uploaded" >> "$POSTS"
