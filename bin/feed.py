@@ -296,6 +296,10 @@ def encode(images, fps, dest):
         p.stdin.write(im.convert("RGB").tobytes())
     p.stdin.close()
     if p.wait() != 0:
+        try:
+            os.remove(tmp)
+        except OSError:
+            pass
         return False
     os.replace(tmp, dest)
     # Selfie apps mirror the front camera, which makes text unreadable. Keep a
@@ -316,10 +320,15 @@ def main():
     once = "--once" in sys.argv
     while True:
         path = latest_transcript(pattern)
-        if path:
-            encode(build(path, fps * seconds, fps), fps, os.path.join(STATE, "card.mp4"))
+        ok = bool(path) and encode(build(path, fps * seconds, fps), fps,
+                                   os.path.join(STATE, "card.mp4"))
         if once:
-            return
+            # A failed encode leaves the previous card.mp4 in place; say so, or the
+            # caller would film last time's screen under this time's caption.
+            if not ok:
+                print("no transcript to draw" if not path else "ffmpeg failed; card.mp4 not updated",
+                      file=sys.stderr)
+            sys.exit(0 if ok else 1)
         time.sleep(2)
 
 
