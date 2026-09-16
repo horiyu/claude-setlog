@@ -204,7 +204,7 @@ tail state/posts.jsonl       # 投稿した一言と、アップロードした�
 - `bin/start.sh` / `bin/stop.sh`: 画面の描画と一言の生成を常駐させ、エミュレータを起動したままにするモードです。校正やデバッグ用です。
 - `state/capture.conf` の `SOURCE=window`: 描き起こしの代わりに、実在の X11 ウィンドウを `bin/screencast.sh` で撮影します（`bin/pick-window.sh` でウィンドウを選びます）。
 - `bin/shoot.sh`: 標準カメラで 1 枚撮って、切り出し範囲を測ります（校正用）。
-- `bin/render.py` / `bin/say.py` / `bin/caption.py` / `bin/capture.py`: 初期版の名残です。
+- `bin/capture.py` / `bin/caption.py`: 初期版の名残です（Stop フックで会話の要約を `state/thought.json` に書き、キャプション画像を作ります）。
 
 ## 作者・ライセンス
 
