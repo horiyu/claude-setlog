@@ -105,16 +105,16 @@ adb shell input tap $TAP_SEND
 #    "sent" row and no video. Watch the guest's outgoing bytes: at least 150 KB out
 #    (a Log measured ~320 KB), then 9 s of near silence (or give up after ~3 min).
 tx() { adb shell cat /proc/net/dev 2>/dev/null | awk '/eth0|wlan0/{t+=$10} END{print t+0}'; }
-tx_start=$(tx); tx_prev=$tx_start; quiet=0
+tx_start=$(tx); tx_prev=$tx_start; quiet=0; settled=0
 for _ in $(seq 1 60); do
   sleep 3
   tx_now=$(tx)
   if [ $(( tx_now - tx_prev )) -lt 20000 ]; then quiet=$(( quiet + 1 )); else quiet=0; fi
   tx_prev=$tx_now
-  [ $(( tx_now - tx_start )) -gt 150000 ] && [ $quiet -ge 3 ] && break
+  [ $(( tx_now - tx_start )) -gt 150000 ] && [ $quiet -ge 3 ] && { settled=1; break; }
 done
 uploaded=$(( tx_prev - tx_start ))
-echo "uploaded ~${uploaded} bytes"
+echo "uploaded ~${uploaded} bytes (settled=$settled)"
 
 # setlog's UI has no text nodes for uiautomator, so keep the room list as evidence:
 # the room row should read "sent log 1m" or so.
@@ -123,8 +123,10 @@ adb exec-out screencap -p > state/last-sent.png
 
 # 7. Record the attempt either way: the send button was tapped, so the post may
 #    exist even if the upload was not seen, and the hourly promise to New Chat is
-#    about posts, not about proof. But only an observed upload counts as success.
-ok=true; [ "$uploaded" -gt 150000 ] || ok=false
+#    about posts, not about proof. But only an upload that was seen to finish counts
+#    as success: bytes still flowing at the 3-minute mark mean the video is not up
+#    yet, and stopping the emulator now would leave a "sent" row with no video.
+ok=true; [ $settled = 1 ] || ok=false
 "$SETLOG_PYTHON" -c 'import json,sys,time,datetime
 print(json.dumps({"time":datetime.datetime.now().isoformat(timespec="seconds"),
                   "epoch":int(time.time()),"caption":sys.argv[1],
@@ -133,7 +135,7 @@ print(json.dumps({"time":datetime.datetime.now().isoformat(timespec="seconds"),
 if [ "$ok" = true ]; then
   echo "sent: $mood"
 else
-  echo "upload not seen (~$uploaded bytes in 3 min): check state/last-send.png and" \
-       "state/last-sent.png for a wrong tap, a logged-out setlog, or no network" >&2
+  echo "upload not finished (~$uploaded bytes in 3 min): check state/last-send.png and" \
+       "state/last-sent.png for a wrong tap, a logged-out setlog, or a bad network" >&2
   exit 1
 fi
