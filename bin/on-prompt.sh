@@ -15,6 +15,14 @@ decision=run
 
 transcript=$(printf '%s' "$input" | "${SETLOG_PYTHON:-python3}" -c \
   'import sys,json; print(json.load(sys.stdin).get("transcript_path",""))' 2>/dev/null)
+# Without a transcript path (malformed input, or a hook payload without one) the feed
+# would fall back to whichever session was written last, which need not be the one
+# spoken to; skip instead. Only the shape is checked: on a session's first prompt the
+# file does not exist yet, and is written by the time the emulator has booted.
+case $transcript in
+  /*.jsonl) ;;
+  *) [ "$decision" = run ] && { decision=skip; transcript="no transcript"; } ;;
+esac
 echo "$(date '+%F %T') $decision kind=$kind $transcript" >> "$SETLOG_HOME/state/triggers.log"
 
 if [ "$decision" = run ]; then
