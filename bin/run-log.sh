@@ -18,7 +18,13 @@ child=
 # a kill / logout / shutdown that would otherwise leave it eating RAM for days.
 cleanup() {
   set +e
-  [ -n "$child" ] && kill "$child" 2>/dev/null
+  if [ -n "$child" ]; then
+    # The capture runs in its own process group (setsid below), so this reaches
+    # mood.py / claude -p / sleep as well, not just the shell waiting on them; and
+    # waiting for it means the lock fd it inherited is released before we return.
+    kill -TERM -- "-$child" 2>/dev/null
+    wait "$child" 2>/dev/null
+  fi
   if [ $started = 1 ]; then
     adb emu kill >/dev/null 2>&1
     log "emulator stopped"
@@ -57,9 +63,10 @@ if ! adb devices | grep -q '^emulator-5554[[:space:]]*device'; then
   sleep 5                                   # let the launcher settle before tapping
 fi
 
-# Run as a job and wait, so a signal reaches the trap now rather than after the
-# capture has finished on its own.
-bin/capture-log.sh & child=$!
+# Run as a job in its own process group and wait, so a signal reaches the trap now
+# rather than after the capture has finished on its own, and cleanup() can stop the
+# whole capture, not only its shell.
+setsid bin/capture-log.sh & child=$!
 wait "$child"; rc=$?
 child=
 # Bundles from other machines (bin/on-remote.sh): keep the newest 5. Done here, with
