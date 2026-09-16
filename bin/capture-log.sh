@@ -31,6 +31,19 @@ if [ "$recent" -ge $MAX_PER_HOUR ]; then
 fi
 [ "${1:-}" = --check ] && exit 0            # run-log.sh asks before booting the emulator
 
+# Whatever happens below (set -e stops at the first failed step), leave nothing
+# behind: no clip.py waiting for a clipboard that will never be read, and an
+# emulator that is still running back in portrait.
+cleanup() {
+  set +e
+  if [ -f state/clip.pid ]; then
+    kill "$(cat state/clip.pid)" 2>/dev/null
+    rm -f state/clip.pid
+  fi
+  adb emu sensor set acceleration 0:9.81:0.8 >/dev/null 2>&1
+}
+trap cleanup EXIT
+
 # 0. Film the session the user spoke to most recently, not the one that started this
 #    run: on-prompt.sh keeps recording triggers while the emulator boots.
 [ -s state/latest-transcript ] && export SETLOG_TRANSCRIPT="$(cat state/latest-transcript)"
@@ -105,11 +118,7 @@ echo "uploaded ~${uploaded} bytes"
 # setlog's UI has no text nodes for uiautomator, so keep the room list as evidence:
 # the room row should read "sent log 1m" or so.
 adb exec-out screencap -p > state/last-sent.png
-# clip.py only exits once Android takes the clipboard, which does not always happen
-# before the emulator goes away. Don't leave it behind.
-kill "$(cat state/clip.pid)" 2>/dev/null || true   # set -e: it may already be gone
-rm -f state/clip.pid
-adb emu sensor set acceleration 0:9.81:0.8 >/dev/null
+# clip.py and the orientation are put back by cleanup() on exit.
 
 # 7. Record the attempt either way: the send button was tapped, so the post may
 #    exist even if the upload was not seen, and the hourly promise to New Chat is
