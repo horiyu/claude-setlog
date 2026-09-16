@@ -45,10 +45,15 @@ if ! adb devices | grep -q '^emulator-5554[[:space:]]*device'; then
     > /tmp/setlog-emu.log 2>&1 < /dev/null 9>&- &
   started=1
   timeout 120 adb wait-for-device
+  booted=0
   for _ in $(seq 1 120); do
-    [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1 ] && break
+    [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1 ] && { booted=1; break; }
     sleep 1
   done
+  if [ $booted != 1 ]; then
+    log "emulator did not finish booting; giving up (see /tmp/setlog-emu.log)"
+    exit 1                                  # the trap stops the emulator
+  fi
   sleep 5                                   # let the launcher settle before tapping
 fi
 
