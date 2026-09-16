@@ -43,6 +43,7 @@ cleanup() {
   adb emu sensor set acceleration 0:9.81:0.8 >/dev/null 2>&1
 }
 trap cleanup EXIT
+trap 'exit 143' TERM INT HUP    # so a kill from run-log.sh still reaches cleanup
 
 # 0. Film the session the user spoke to most recently, not the one that started this
 #    run: on-prompt.sh keeps recording triggers while the emulator boots.

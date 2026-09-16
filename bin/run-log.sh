@@ -13,6 +13,20 @@ flock -n 9 || { log "another Log is in progress; it films this session if it has
 bin/capture-log.sh --check || { log "rate limit; skipping"; exit 0; }   # before paying for a boot
 
 started=0
+child=
+# An emulator this run booted is shut down however the run ends: a failed step, or
+# a kill / logout / shutdown that would otherwise leave it eating RAM for days.
+cleanup() {
+  set +e
+  [ -n "$child" ] && kill "$child" 2>/dev/null
+  if [ $started = 1 ]; then
+    adb emu kill >/dev/null 2>&1
+    log "emulator stopped"
+  fi
+}
+trap cleanup EXIT
+trap 'exit 143' TERM INT HUP
+
 if ! adb devices | grep -q '^emulator-5554[[:space:]]*device'; then
   log "booting emulator"
   # A fresh clone has no camera video yet; give the emulator something to open.
@@ -38,12 +52,11 @@ if ! adb devices | grep -q '^emulator-5554[[:space:]]*device'; then
   sleep 5                                   # let the launcher settle before tapping
 fi
 
-bin/capture-log.sh
-rc=$?
-if [ $started = 1 ]; then
-  adb emu kill >/dev/null 2>&1
-  log "emulator stopped"
-fi
+# Run as a job and wait, so a signal reaches the trap now rather than after the
+# capture has finished on its own.
+bin/capture-log.sh & child=$!
+wait "$child"; rc=$?
+child=
 # Bundles from other machines (bin/on-remote.sh): keep the newest 5. Done here, with
 # the lock held and the capture over, so a bundle is never removed while being drawn.
 ls -dt state/remote/*/ 2>/dev/null | tail -n +6 | xargs -r rm -rf
