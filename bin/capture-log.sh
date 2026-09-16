@@ -111,8 +111,19 @@ kill "$(cat state/clip.pid)" 2>/dev/null || true   # set -e: it may already be g
 rm -f state/clip.pid
 adb emu sensor set acceleration 0:9.81:0.8 >/dev/null
 
+# 7. Record the attempt either way: the send button was tapped, so the post may
+#    exist even if the upload was not seen, and the hourly promise to New Chat is
+#    about posts, not about proof. But only an observed upload counts as success.
+ok=true; [ "$uploaded" -gt 150000 ] || ok=false
 "$SETLOG_PYTHON" -c 'import json,sys,time,datetime
 print(json.dumps({"time":datetime.datetime.now().isoformat(timespec="seconds"),
                   "epoch":int(time.time()),"caption":sys.argv[1],
-                  "uploaded_bytes":int(sys.argv[2])},ensure_ascii=False))' "$mood" "$uploaded" >> "$POSTS"
-echo "sent: $mood"
+                  "uploaded_bytes":int(sys.argv[2]),"ok":sys.argv[3]=="true"},
+                 ensure_ascii=False))' "$mood" "$uploaded" "$ok" >> "$POSTS"
+if [ "$ok" = true ]; then
+  echo "sent: $mood"
+else
+  echo "upload not seen (~$uploaded bytes in 3 min): check state/last-send.png and" \
+       "state/last-sent.png for a wrong tap, a logged-out setlog, or no network" >&2
+  exit 1
+fi
