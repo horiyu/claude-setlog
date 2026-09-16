@@ -65,7 +65,11 @@ def ask(prompt, cwd):
     except subprocess.TimeoutExpired:
         print("claude -p timed out", file=sys.stderr)
         return ""
-    if r.returncode != 0 or not r.stdout.strip():
+    if r.returncode != 0:
+        # Whatever reached stdout before the failure is not a caption.
+        print(f"claude -p exited {r.returncode}: {r.stderr[:200]}", file=sys.stderr)
+        return ""
+    if not r.stdout.strip():
         print(r.stderr[:200], file=sys.stderr)
     return " ".join(r.stdout.split()).strip("「」\"' ")
 
