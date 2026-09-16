@@ -1,13 +1,11 @@
-# （任意）Mac など別のマシンの Claude Code から Log を投稿する
+# Macからのリモート実行
 
-この設定は必須ではなく、本体だけでも動作します。
-別のマシンでも Claude Code を使っていて、そちらで話しかけたときも Log にしたい場合にのみ設定してください。
+別のMacからClaude Codeのセッションを送信するための任意設定です。本体の動作には必要ありません。
 
 Mac で Claude に話しかけると、`setlog-hook.sh` がその会話の直近部分と、Claude が最後に触ったファイル（最大 3 つ、2 MB 未満、秘密情報を含みそうな名前と `~/.claude/` 以下は除く）を、claude-setlog を動かしている Linux PC に送ります。
 撮影・一言の生成・投稿は PC 側で通常どおり行います（`bin/on-remote.sh`）。
 
-経路は Tailscale SSH を想定しています。Mac → PC の一方向のみで、PC 側に新しい常駐プロセスは増えません（tailscaled が受け付けます）。
-通常の sshd でも動作します。
+通信経路にはTailscale SSHを想定しています。通信方向はMacからLinux PCへの一方向で、PC側に新しい常駐プロセスは追加しません。通常のsshdでも動作します。
 
 ## 1. PC 側（初回のみ。sudo が必要です）
 

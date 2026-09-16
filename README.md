@@ -1,13 +1,13 @@
 # claude-setlog
 
-Claude Code に話しかけるたびに、Claude が作業している PC の画面を 2 秒 Vlog アプリ [setlog](https://setlog.kr/) で撮影し、Claude 自身の一言を添えて投稿する実験です。
-人ではなく、プログラムの一日が Vlog になります。
+Claude Codeとの会話ログからPC画面風の動画を生成し、Claudeが書いたキャプションとともに[setlog](https://setlog.kr/)へ投稿する実験です。
+人ではなく、プログラムの一日をVlogとして記録します。
 
 *Every time you talk to Claude Code, this draws the screen of the PC Claude is working on, films it with the 2-second vlog app setlog inside an Android emulator, and posts it with a one-line caption written by Claude. A day in the life of a program, not a person.*
 
 ![デモ](docs/demo.png)
 
-## 利用にあたっての注意（重要）
+## 重要: setlogの利用許可について
 
 setlog 利用約款 第 3 条は「会社の許可なく自動化プログラム、ボット、スクリプト、クローラーを使用する行為」を禁じています。
 このリポジトリは撮影ボタンのタップと投稿を自動化するため、**許可なく動かすと規約違反になります**。
@@ -17,11 +17,11 @@ setlog 利用約款 第 3 条は「会社の許可なく自動化プログラム
 利用する場合は、各自で New Chat に確認してください（問い合わせ先は setlog の公式サイトにあります）。
 作者は投稿頻度を「1 時間に 1〜10 回」に収めることを約束しており、コードにも上限（`bin/capture-log.sh` の `MAX_PER_HOUR=10`）を設けています。
 
-## 仕組み
+## 動作の流れ
 
 ```
 Claude Code にメッセージを送る
-  └ UserPromptSubmit フック → bin/on-prompt.sh（すぐ返るので Claude は待たされない）
+  └ UserPromptSubmitフック → bin/on-prompt.sh（非同期で終了）
       └ bin/run-log.sh
           ├ Android エミュレータを起動（コールドブートで約 20 秒）
           └ bin/capture-log.sh
@@ -41,7 +41,7 @@ Claude Code にメッセージを送る
 - claude.ai のチャットやスマートフォンアプリの Claude は Claude Code ではないため、フックは効きません。
 - （任意）Mac など別のマシンの Claude Code から発動させることもできます。[mac/README.md](mac/README.md) を参照してください。
 
-## 画面
+## 画面の生成
 
 **キャプチャではなく描き起こしです**。デスクトップも VM も立ち上げず、会話記録（`~/.claude/projects/*/*.jsonl`）から画面を描画しています。
 そのため、スマートフォンやウェブから指示した、画面のないセッションでも同じように映ります。
@@ -63,19 +63,19 @@ Claude Code にメッセージを送る
 - マウスは見えている場所（URL バー、書き換えた行、アイコン、入力欄など）から 3〜5 か所を選んで移動します。曲がり方・速さ・停止時間・クリックの有無も毎回変わります。
 - `state/capture.conf` で `SCENE=terminal` にすると、ターミナルだけの表示になります。
 
-## 一言
+## キャプションの生成
 
 `bin/mood.py` が `claude -p`（既定は Haiku。`SETLOG_MOOD_MODEL` で変更可能）に書かせます。
 作業の要約ではなく「いまの気持ち」を、ギャル風の女子高生の口調で 1 行にします。
 作業の中の具体的なもの（ファイル名、エラー、数字）を一つ拾わせ、直近 10 件と被らないようにしています。
-30 文字を超えた出力は一言ではなくモデルが素に戻った返答（作業ログへの質問や説明）なので、1 回だけ書き直させ、それでも長ければその Log は送りません。
+出力が30文字を超えた場合は、条件を強調して1度だけ再生成します。再生成後も30文字を超える場合、そのLogは投稿しません。
 プロンプトは `bin/mood.py` の中にあるので、好みに合わせて書き換えてください。
 
 `adb shell input text` は日本語を通さないため、一言は `bin/clip.py` で X のクリップボードに載せ、エミュレータのクリップボード共有で Android に渡してから貼り付けています。
 
-## 前提と制約
+## 動作条件と制限
 
-clone すればそのまま動く、というものではありません。次の前提があります。
+このリポジトリは、clone直後の状態では動作しません。次の条件を前提としています。
 
 - **動作確認は作者の環境のみです。** Linux（X11）、Android Emulator 37.1、2026 年 9 月時点の setlog で確認しています。
 - **setlog のアカウントとルームは自分で用意します。** エミュレータ上の Play ストアへのサインイン、setlog のインストールとログイン、投稿先ルームの作成は手作業です（意図的に自動化していません）。
@@ -83,7 +83,7 @@ clone すればそのまま動く、というものではありません。次�
 - **`claude` コマンドにログインしている必要があります。** 一言の生成に `claude -p` を使います。
 - **setlog の規約上、自動化には運営会社の許可が必要です**（上記「利用にあたっての注意」を参照）。
 
-## 必要なもの
+## 動作要件
 
 - Linux の X11 デスクトップ（エミュレータのウィンドウとクリップボード共有に使います）と KVM
 - Android SDK: `emulator`、`platform-tools`、`cmdline-tools`、Google Play 入りのシステムイメージ（動作確認は `system-images;android-35;google_apis_playstore;x86_64`）、JDK 17 以上
@@ -114,7 +114,7 @@ clone すればそのまま動く、というものではありません。次�
    ```
 
    設定ファイルは `state/capture.conf` です（初回実行時に `state/capture.conf.example` からコピーされます）。
-   不足しているものは `bin/doctor.sh` で確認できます（何も変更しません）。
+   必要なコマンドや設定は`bin/doctor.sh`で確認できます。`state/capture.conf`が存在しない場合は、この確認時にもサンプルから作成されます。
 
 2. JDK と Android SDK を `jdk/` と `sdk/` に置きます（別の場所に置く場合は `env.sh` を書き換えてください）。
    AVD は `avd/` に作ります。画面サイズは 1080x2400 にしてください（タップ位置がこのサイズで決めてあります）。
@@ -134,7 +134,7 @@ clone すればそのまま動く、というものではありません。次�
    投稿画面で、投稿先のルームが上から 2 行目（自分だけの Vlog の次）に来る想定です。
    異なる場合は `state/capture.conf` に `TAP_ROOM="x y"` を書いてください。
 
-4. 手動で 1 本撮って確認します。
+4. 手動で投稿を確認します。
 
    ```sh
    bin/run-log.sh && tail /tmp/setlog-run.log
@@ -172,7 +172,7 @@ clone すればそのまま動く、というものではありません。次�
 | `SETLOG_MONO_FONT` | 等幅フォント |
 | `SETLOG_MOOD_MODEL` | 一言を書くモデル |
 
-## ログと確認
+## ログ
 
 ```sh
 tail state/triggers.log      # 発動の記録（run / skip と、どのセッションか）
@@ -188,24 +188,12 @@ tail state/posts.jsonl       # 投稿した一言と、アップロードした�
 `.env` や `secret`・`token`・`.pem` などを含む名前のファイルと `~/.claude/` 以下は映さないようにしていますが、それ以外は映ります。
 自分だけのルームで使うことを前提としており、他の人に見せる前には内容を自分の目で確認してください。
 
-## 実測して分かったこと
+## 詳細資料
 
-- **setlog は横向きでしか撮影できません**（"rotate to capture"）。エミュレータを横向きにするには、画面回転ではなく加速度センサーを傾けます: `adb emu sensor set acceleration -9.81:0:0`（戻すときは `0:9.81:0.8`）。
-- センサーで横向きにした状態では、**Log は正立のまま、ソースの上端 16:9 の帯（1710x962）が映ります**。ソース動画は 1710x1280（エミュレータは 4:3 のセンサーとして扱います）で、描いた画面を上端に置いています。
-- エミュレータは**カメラセッションを開いた時点の動画を掴みます**。再生中に動画を差し替えても映像は変わらないため、毎回 setlog を開き直しています。
-- **「sent」は押した瞬間に表示されますが、動画は後からバックグラウンドでアップロードされます。** 投稿直後にエミュレータを停止すると、相手には「sent」だけが届いて動画が来ません。投稿後はゲストの送信バイト数を監視し、150 KB 以上送信されてから 9 秒静かになるまで待ちます（最長約 3 分）。
-- setlog はインカメラだと鏡像になるため、背面カメラを使います。
-- setlog の画面は uiautomator から文字を読めない（動画の再生中は dump もできない）ため、投稿画面のタップ位置は座標で固定しています。
-- 投稿画面を開いた時点でキャプション欄にフォーカスがあるため、貼り付けにタップは要りません。
-- Claude Code は thinking を暗号化して保存します。画面に出せるのは指示・応答・ツール呼び出しなど、平文で残るものだけです。
-- 一言を生成する `claude -p` も会話記録を書くため、「最後に動いたセッション」を追うと自分自身を映してしまいます。プロンプトに `SETLOG_MOOD_CALL` を埋め込んで除外し、cwd も `/tmp/setlog-mood` に逃がしています。
+- [実装上の注意](docs/implementation-notes.md): Android Emulator、カメラ、アップロード判定の実測結果
+- [補助機能と旧機能](docs/legacy-modes.md): 常駐モード、実ウィンドウ撮影、校正用スクリプト
+- [Macからのリモート実行](mac/README.md): 別のマシンから会話ログを送信する設定
 
-## 旧モード
-
-- `bin/start.sh` / `bin/stop.sh`: 画面の描画と一言の生成を常駐させ、エミュレータを起動したままにするモードです。校正やデバッグ用です。
-- `state/capture.conf` の `SOURCE=window`: 描き起こしの代わりに、実在の X11 ウィンドウを `bin/screencast.sh` で撮影します（`bin/pick-window.sh` でウィンドウを選びます）。
-- `bin/shoot.sh`: 標準カメラで 1 枚撮って、切り出し範囲を測ります（校正用）。
-- `bin/capture.py` / `bin/caption.py`: 初期版の名残です（Stop フックで会話の要約を `state/thought.json` に書き、キャプション画像を作ります）。
 
 ## 作者・ライセンス
 
