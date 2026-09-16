@@ -50,7 +50,10 @@ if ! adb devices | grep -q '^emulator-5554[[:space:]]*device'; then
     -camera-front "videofile:$PWD/state/card_front.mp4" \
     > /tmp/setlog-emu.log 2>&1 < /dev/null 9>&- &
   started=1
-  timeout 120 adb wait-for-device
+  # As a job under wait, like the capture below: a foreground command would hold
+  # the TERM trap off for up to its 120 s.
+  setsid timeout 120 adb wait-for-device & child=$!
+  wait "$child"; child=
   booted=0
   for _ in $(seq 1 120); do
     [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1 ] && { booted=1; break; }
