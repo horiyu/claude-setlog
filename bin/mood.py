@@ -54,6 +54,7 @@ PROMPT = """あなたはいま、ある人のPCの中でコーディング作業
 def main():
     path = latest_transcript(os.environ.get("SETLOG_PROJECT", "*"))
     if not path:
+        print("no transcript to read", file=sys.stderr)
         return 1
     events, running = read_session(path)
     log = "\n".join(f"[{k}] {t}" for k, t in events[-14:])[:3000]

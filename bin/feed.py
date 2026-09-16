@@ -85,11 +85,18 @@ def _is_own_subsession(path):
     return False
 
 
-def latest_transcript(pattern):
+def latest_transcript(pattern, wait=30):
     # Set by bin/on-prompt.sh: film the session the user just spoke to, not merely
-    # whichever one was written last.
+    # whichever one was written last. On a session's first prompt the hook fires
+    # before the file exists, so give it a moment; but never fall back to another
+    # session's file, which would put someone else's conversation in the Log.
     pinned = os.environ.get("SETLOG_TRANSCRIPT")
-    if pinned and os.path.isfile(pinned):
+    if pinned:
+        deadline = time.time() + wait
+        while not os.path.isfile(pinned):
+            if time.time() > deadline:
+                return None
+            time.sleep(1)
         return pinned
     files = glob.glob(os.path.join(PROJECTS, pattern, "*.jsonl"))
     for path in sorted(files, key=os.path.getmtime, reverse=True):
