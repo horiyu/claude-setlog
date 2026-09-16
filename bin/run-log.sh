@@ -44,5 +44,8 @@ if [ $started = 1 ]; then
   adb emu kill >/dev/null 2>&1
   log "emulator stopped"
 fi
+# Bundles from other machines (bin/on-remote.sh): keep the newest 5. Done here, with
+# the lock held and the capture over, so a bundle is never removed while being drawn.
+ls -dt state/remote/*/ 2>/dev/null | tail -n +6 | xargs -r rm -rf
 log "done rc=$rc"
 exit "$rc"
