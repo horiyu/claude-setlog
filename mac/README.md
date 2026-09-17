@@ -2,26 +2,26 @@
 
 別のMacからClaude Codeのセッションを送信するための任意設定です。本体の動作には必要ありません。
 
-Mac で Claude に話しかけると、`setlog-hook.sh` がその会話の直近部分と、Claude が最後に触ったファイル（最大 3 つ、2 MB 未満、秘密情報を含みそうな名前と `~/.claude/` 以下は除く）を、claude-setlog を動かしている Linux PC に送ります。
-撮影・一言の生成・投稿は PC 側で通常どおり行います（`bin/on-remote.sh`）。
+MacでClaudeに話しかけると、`setlog-hook.sh`が会話ログの直近部分と、Claudeが最後に触ったファイルをLinux PCへ送信します。ファイルは最大3件、1件あたり2 MB未満です。秘密情報を含みそうな名前のファイルと`~/.claude/`以下は除外します。
+撮影・一言の生成・投稿はPC側で通常どおり行います（`bin/on-remote.sh`）。
 
 通信経路にはTailscale SSHを想定しています。通信方向はMacからLinux PCへの一方向で、PC側に新しい常駐プロセスは追加しません。通常のsshdでも動作します。
 
-## 1. PC 側（初回のみ。sudo が必要です）
+## 1. PC側（初回のみ。sudoが必要です）
 
 ```sh
 sudo tailscale set --ssh
 ```
 
-Tailscale の管理画面（Access controls）の `ssh` ルールが `"action": "check"` になっていると、ときどきブラウザでの再認証を求められ、そのあいだフックは黙って失敗します。
-自分の端末どうしであれば `"action": "accept"` にしておくことを推奨します。
+Tailscaleの管理画面（Access controls）の`ssh`ルールが`"action": "check"`になっていると、ときどきブラウザでの再認証を求められ、再認証が必要な間はフックが失敗する場合があります。この失敗は画面には表示されません。
+自分の端末どうしであれば`"action": "accept"`にしておくことを推奨します。
 
 ```json
 "ssh": [{ "action": "accept", "src": ["autogroup:member"], "dst": ["autogroup:self"],
           "users": ["autogroup:nonroot"] }]
 ```
 
-## 2. Mac 側
+## 2. Mac側
 
 ```sh
 scp you@your-linux-pc:claude-setlog/mac/setlog-hook.sh ~/.claude/setlog-hook.sh
@@ -33,7 +33,7 @@ EOF
 ssh -o BatchMode=yes you@your-linux-pc true && echo "接続できました"
 ```
 
-`~/.claude/settings.json` の `hooks.UserPromptSubmit` に**追加**してください（既存のフックは消さないでください）。
+次のJSONオブジェクトを、`~/.claude/settings.json`の`hooks.UserPromptSubmit`配列に要素として追加します。設定ファイル全体を置き換える例ではありません。既存の設定とフックは残してください。
 
 ```json
 {
@@ -43,30 +43,30 @@ ssh -o BatchMode=yes you@your-linux-pc true && echo "接続できました"
 }
 ```
 
-Mac の Claude Code にこの README を読ませて「これを設定して」と頼む方法もあります。
+MacのClaude CodeにこのREADMEを読ませて「これを設定して」と頼む方法もあります。
 
 ## 3. 動作確認
 
-Mac で Claude に何か話しかけてから、PC で次を実行します。
+MacでClaudeに何か話しかけてから、PCで次を実行します。
 
 ```sh
 tail -3 claude-setlog/state/triggers.log   # "run kind=remote:<Mac の名前>" が出れば OK
 ```
 
-届かない場合は、次を確認してください。
+ログが届かない場合は、次を確認してください。
 
-- 送る内容が作れているか。Mac で次を実行します。
+- 送る内容が作れているか。Macで次を実行します。
 
   ```sh
   echo '{"transcript_path":"<会話の .jsonl>","session_id":"t"}' | SETLOG_DRY_RUN=/tmp/b.tgz ~/.claude/setlog-hook.sh
   sleep 2; tar tzf /tmp/b.tgz
   ```
 
-- 経路が通っているか。Mac で次を実行します。
+- 経路が通っているか。Macで次を実行します。
 
   ```sh
   ssh -o BatchMode=yes you@your-linux-pc true
   ```
 
-Mac の会話ではシステムモニターは表示しません（描けるのは PC の数値だけで、Mac の話としては正しくないためです）。
+Linux PCの情報をMacの情報として表示しないよう、Macのセッションではシステムモニターを表示しません。
 フォルダのウィンドウは、中のファイルが送られてきたときだけ表示されます。

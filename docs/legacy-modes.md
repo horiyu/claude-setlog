@@ -8,7 +8,7 @@
 
 ## 実ウィンドウの撮影
 
-`SOURCE=window`を指定すると、実際のX11ウィンドウを撮影します。
+常駐モードでは、`state/capture.conf`に`SOURCE=window`を指定すると、実際のX11ウィンドウを撮影します。
 
 - `bin/pick-window.sh`: 撮影対象を選択
 - `bin/screencast.sh`: ウィンドウを動画へ変換
@@ -16,3 +16,6 @@
 
 ## 校正用スクリプト
 
+`bin/shoot.sh`は標準カメラで静止画を撮影し、映像の切り出し範囲を確認するためのスクリプトです。
+
+初期版の`bin/capture.py`はStopフックから会話の要約を`state/thought.json`へ保存し、`bin/caption.py`でキャプション画像を生成します。現在の標準フローでは使用しません。
