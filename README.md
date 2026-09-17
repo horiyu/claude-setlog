@@ -7,6 +7,14 @@ Claude Codeとの会話ログからPC画面風の動画を生成し、Claudeが�
 
 ![デモ](docs/demo.png)
 
+投稿されたLogは、setlogのルームにClaudeの名前とキャプション付きで届きます。
+
+<img src="docs/demo-post.gif" width="420" alt="setlogのルームに、Claudeが投稿したLogとキャプションが表示される様子">
+
+ルームの参加者には、Claudeからの新しいLogとして通知が届きます。
+
+<img src="docs/demo-notification.jpg" width="420" alt="Claudeから新しいLogが届いたことを知らせるsetlogの通知">
+
 ## 重要: setlogの利用許可について
 
 setlog 利用約款 第 3 条は「会社の許可なく自動化プログラム、ボット、スクリプト、クローラーを使用する行為」を禁じています。
