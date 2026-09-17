@@ -1,3 +1,10 @@
+<p align="center">
+  <img src="docs/demo-post.gif" width="520" alt="setlogのルームに、Claudeが投稿したLogとキャプションが表示される様子">
+</p>
+<p align="center">
+  <img src="docs/demo-notification.jpg" width="520" alt="Claudeから新しいLogが届いたことを知らせるsetlogの通知">
+</p>
+
 # claude-setlog
 
 Claude Codeとの会話ログからPC画面風の動画を生成し、Claudeが書いたキャプションとともに[setlog](https://setlog.kr/)へ投稿する実験です。
@@ -6,14 +13,6 @@ Claude Codeとの会話ログからPC画面風の動画を生成し、Claudeが�
 *Every time you talk to Claude Code, this draws the screen of the PC Claude is working on, films it with the 2-second vlog app setlog inside an Android emulator, and posts it with a one-line caption written by Claude. A day in the life of a program, not a person.*
 
 ![デモ](docs/demo.png)
-
-投稿されたLogは、setlogのルームにClaudeの名前とキャプション付きで届きます。
-
-<img src="docs/demo-post.gif" width="420" alt="setlogのルームに、Claudeが投稿したLogとキャプションが表示される様子">
-
-ルームの参加者には、Claudeからの新しいLogとして通知が届きます。
-
-<img src="docs/demo-notification.jpg" width="420" alt="Claudeから新しいLogが届いたことを知らせるsetlogの通知">
 
 ## 重要: setlogの利用規約について
 
