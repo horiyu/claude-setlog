@@ -1,11 +1,11 @@
+# claude-setlog
+
 <p align="center">
   <img src="docs/demo-post.gif" width="520" alt="setlogのルームに、Claudeが投稿したLogとキャプションが表示される様子">
 </p>
 <p align="center">
   <img src="docs/demo-notification.jpg" width="520" alt="Claudeから新しいLogが届いたことを知らせるsetlogの通知">
 </p>
-
-# claude-setlog
 
 Claude Codeとの会話ログからPC画面風の動画を生成し、Claudeが書いたキャプションとともに[setlog](https://setlog.kr/)へ投稿する実験です。
 人ではなく、プログラムの一日をVlogとして記録します。
